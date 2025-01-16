@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from api import root, registration 
+from api import root, registration
 
 app = FastAPI()
 

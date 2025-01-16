@@ -1,6 +1,8 @@
 from db.connection import supabase_connection
+from datetime import datetime as dt
 
-from api.models import Maintainer, Mobilizer
+from api import models
+from api import crud
 
 from fastapi import APIRouter
 
@@ -14,84 +16,37 @@ router = APIRouter()
 # 5 : mobilizer
 # 6 : volunteer
 
-# create maintainer user
-@router.post("/maintainers")
-def create_maintainer(maintainer: Maintainer):
-    # auth user - create account
-    response_auth = supabase_connection().auth.sign_up(
-        {"email": maintainer.email, "password": "leet123"}
-    )
+@router.post("/address", status_code=201)
+async def create_address(payload: models.Address):
+    address_id = await crud.post_address(payload)
+    created_date = dt.now().strftime("%Y-%m-%d %H:%M")
 
-    response_address = supabase_connection().table("address").insert([{
-        "street": maintainer.street,
-        "neighborhood": maintainer.neighborhood,
-        "zip": maintainer.zip,
-        "complement": maintainer.complement,
-        "number": maintainer.number,
-        "city": maintainer.city,
-        "state": maintainer.state
-    }]).execute()
-
-    for address in response_address.data:
+    for address in address_id.data:
         address_id = address["id"]
 
-    response = supabase_connection().table("profile").insert([
-        {"name": maintainer.name,
-         "fk_user": response_auth.user.id,
-         "phone": maintainer.phone,
-         "cpf_cnpj": maintainer.cpf,
-         "birthday": maintainer.birthday,
-         "fk_org": maintainer.org_id,
-         "role_id": 4,
-         "status": maintainer.status,
-         "fk_address": address_id
-         }
-    ]).execute()
+    response_object = {
+        "id": address_id,
+        "created_at": created_date
+    }
+    return response_object
 
-    response = supabase_connection().table("maintainer").insert([{
-        "member_since": maintainer.member_since,
-        "fk_user": response_auth.user.id
-    }]).execute()
 
-    return response
+# create maintainer user
+@router.post("/maintainers", status_code=201)
+async def create_maintainer(payload_user: models.User, payload_profile: models.Profile,
+                      payload_address: models.Address, payload_maintainer: models.Maintainer):
+
+    new_maintainer = await crud.post_maintainer(payload_user, payload_profile,
+                                                payload_address, payload_maintainer)
+
+    return new_maintainer
 
 # create mobilizer user
-@router.post("/mobilizers")
-def create_maintainer(mobilizer: Mobilizer):
-    # auth user - create account
-    response_auth = supabase_connection().auth.sign_up(
-        {"email": mobilizer.email, "password": "leet123"}
-    )
+@router.post("/mobilizers", status_code=201)
+async def create_mobilizer(payload_user: models.User, payload_profile: models.Profile,
+                      payload_address: models.Address, payload_mobilizer: models.Mobilizer):
 
-    response_address = supabase_connection().table("address").insert([{
-        "street": mobilizer.street,
-        "neighborhood": mobilizer.neighborhood,
-        "zip": mobilizer.zip,
-        "complement": mobilizer.complement,
-        "number": mobilizer.number,
-        "city": mobilizer.city,
-        "state": mobilizer.state
-    }]).execute()
+    new_mobilizer = await crud.post_mobilizer(payload_user, payload_profile,
+                                                payload_address, payload_mobilizer)
 
-    for address in response_address.data:
-        address_id = address["id"]
-
-    response = supabase_connection().table("profile").insert([
-        {"name": mobilizer.name,
-         "fk_user": response_auth.user.id,
-         "phone": mobilizer.phone,
-         "cpf_cnpj": mobilizer.cpf,
-         "birthday": mobilizer.birthday,
-         "fk_org": mobilizer.org_id,
-         "role_id": 5,
-         "status": mobilizer.status,
-         "fk_address": address_id
-         }
-    ]).execute()
-
-    response = supabase_connection().table("mobilizer").insert([{
-        "member_since": mobilizer.member_since,
-        "fk_user": response_auth.user.id
-    }]).execute()
-
-    return response
+    return new_mobilizer
