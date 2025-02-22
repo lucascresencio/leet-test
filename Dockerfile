@@ -11,7 +11,7 @@ RUN pip install -r requirements.txt
 COPY . .
 
 # Expose the port FastAPI will run on
-EXPOSE 6000
+EXPOSE 5050
 
 # Command to run the app
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "6000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5050"]
