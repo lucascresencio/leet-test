@@ -3,7 +3,7 @@ version: '3.9'
 services:
   leet_app:
     build:
-      context: ./app
+      context: .
       dockerfile: Dockerfile
     container_name: leet_app
     env_file:
