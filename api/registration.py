@@ -1,4 +1,3 @@
-from db.connection import supabase_connection
 from datetime import datetime as dt
 
 from api import models
