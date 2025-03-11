@@ -5,7 +5,6 @@ from app.schemas.user import UserCreate, UserResponse
 
 class MaintainerBase(BaseModel):
     name: str
-    is_business: bool
 
 
 class MaintainerCreate(MaintainerBase):

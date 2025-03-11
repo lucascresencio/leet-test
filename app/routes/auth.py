@@ -3,10 +3,11 @@ from dotenv import load_dotenv
 from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from app.schemas.user import UserCreate, UserResponse, LoginRequest, LoginResponse
+from fastapi.security import OAuth2PasswordRequestForm
+from app.schemas.user import UserCreate, UserResponse, Token
 from app.services.auth_service import get_current_user, get_password_hash, authenticate_user, create_access_token
 from app.config.database import get_db
-from ..models.user import User, UserType
+from ..models.user import User
 
 load_dotenv()
 
@@ -22,19 +23,11 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
     if db_user:
         raise HTTPException(status_code=400, detail="Username already registered")
 
-    # Buscar o UserType correspondente ao user_type fornecido
-    user_type = db.query(UserType).filter(UserType.name == user.user_type).first()
-    if not user_type:
-        raise HTTPException(status_code=400, detail=f"Invalid user type: {user.user_type}")
-
     # Create user
     db_user = User(
         username=user.username,
         email=user.email,
-        document=user.document,
-        phone_number=user.phone_number,
-        password=get_password_hash(user.password),
-        user_type_id=user.user_type
+        password=get_password_hash(user.password)
     )
     db.add(db_user)
     db.commit()
@@ -42,12 +35,9 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
     return db_user
 
 # Rota para login e obtenção de token
-@router.post("/token", response_model=LoginResponse)
-def login(request: LoginRequest, db: Session = Depends(get_db)):
-    auth_result = authenticate_user(db, request.username, request.password)
-    user = auth_result["user"]
-    user_type = auth_result["type"]
-    role = auth_result["role"]
+@router.post("/token", response_model=Token)
+def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -56,18 +46,9 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.username, "type": user_type, "role": role}, expires_delta=access_token_expires
+        data={"sub": user.username}, expires_delta=access_token_expires
     )
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "username": user.username,
-        "email": user.email,
-        "document": user.document,
-        "phone_number": user.phone_number,
-        "user_type": user_type,
-        "role": role
-    }
+    return {"access_token": access_token, "token_type": "bearer"}
 
 # Rota protegida de exemplo (obter dados do usuário atual)
 @router.get("/users/me/", response_model=UserResponse)

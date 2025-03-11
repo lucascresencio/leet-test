@@ -1,5 +1,5 @@
-from sqlalchemy.orm import relationship
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String
+from typing_extensions import Optional
 
 from app.config.database import Base
 
@@ -10,14 +10,5 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
     email = Column(String, unique=True, nullable=True)
-    document = Column(String, unique=True, nullable=True)
-    phone_number = Column(String, unique=True, nullable=True)
+    cpf = Column(String, unique=True, nullable=True)
     password = Column(String)
-    user_type_id = Column(Integer, ForeignKey("user_types.id"), nullable=False)
-
-    user_type = relationship("UserType")
-
-class UserType(Base):
-    __tablename__ = "user_types"
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, nullable=False)  # Ex.: "staff", "maintainer", "ong"
