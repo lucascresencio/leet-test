@@ -38,7 +38,6 @@ typing_extensions==4.12.2
 uvicorn==0.34.0
 websockets==13.1
 yarl==1.18.3
-sqlalchemy==2.0.15
 psycopg2-binary==2.9.6
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
