@@ -1,7 +1,7 @@
 FROM python:3.9.21-alpine3.21
 
 # Set working directory
-WORKDIR /app
+WORKDIR /app/app
 
 # Copy the requirements file and install dependencies
 COPY requirements.txt .
