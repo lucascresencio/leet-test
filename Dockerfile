@@ -14,4 +14,4 @@ COPY . .
 EXPOSE 5050
 
 # Command to run the app
-CMD ["uvicorn", "main:app/app", "--host", "0.0.0.0", "--port", "5050"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "5050"]
