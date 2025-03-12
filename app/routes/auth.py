@@ -3,8 +3,7 @@ from dotenv import load_dotenv
 from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from fastapi.security import OAuth2PasswordRequestForm
-from app.schemas.user import UserCreate, UserResponse, Token
+from app.schemas.user import UserCreate, UserResponse, Token, LoginRequest
 from app.services.auth_service import get_current_user, get_password_hash, authenticate_user, create_access_token
 from app.config.database import get_db
 from ..models.user import User
@@ -36,8 +35,8 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
 
 # Rota para login e obtenção de token
 @router.post("/token", response_model=Token)
-def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = authenticate_user(db, form_data.username, form_data.password)
+def login(request: LoginRequest, db: Session = Depends(get_db)):
+    user = authenticate_user(db, request.username, request.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
