@@ -3,13 +3,13 @@ FROM python:3.9.21-alpine3.21
 # Set working directory
 WORKDIR /app/app
 
+# Copy the application code
+COPY . /app/app
+
 # Copy the requirements file and install dependencies
 COPY requirements.txt .
 RUN python -m pip install --upgrade pip
 RUN pip install -r requirements.txt
-
-# Copy the application code
-COPY . .
 
 # Expose the port FastAPI will run on
 EXPOSE 5050
