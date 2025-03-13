@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from app.schemas.user import UserCreate, UserResponse, Token, LoginRequest
+from app.schemas.user import UserCreate, UserResponse, LoginRequest, LoginResponse
 from app.services.auth_service import get_current_user, get_password_hash, authenticate_user, create_access_token
 from app.config.database import get_db
 from ..models.user import User
@@ -26,7 +26,8 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
     db_user = User(
         username=user.username,
         email=user.email,
-        password=get_password_hash(user.password)
+        password=get_password_hash(user.password),
+        user_type=user.user_type
     )
     db.add(db_user)
     db.commit()
@@ -34,9 +35,12 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
     return db_user
 
 # Rota para login e obtenção de token
-@router.post("/token", response_model=Token)
+@router.post("/token", response_model=LoginResponse)
 def login(request: LoginRequest, db: Session = Depends(get_db)):
-    user = authenticate_user(db, request.username, request.password)
+    auth_result = authenticate_user(db, request.username, request.password)
+    user = auth_result["user"]
+    user_type = auth_result["type"]
+    role = auth_result["role"]
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -45,9 +49,18 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
+        data={"sub": user.username, "type": user_type, "role": role}, expires_delta=access_token_expires
     )
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "username": user.username,
+        "email": user.email,
+        "document": user.document,
+        "phone_number": user.phone_number,
+        "user_type": user_type,
+        "role": role
+    }
 
 # Rota protegida de exemplo (obter dados do usuário atual)
 @router.get("/users/me/", response_model=UserResponse)

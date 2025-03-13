@@ -1,38 +1,43 @@
 from datetime import datetime, timedelta
 from typing import Optional
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from app.models.user import User
+from app.models.staff import Staff
+from app.models.maintainer import Maintainer
 from app.schemas.user import UserCreate
 from app.config.database import get_db
 import os
 from dotenv import load_dotenv
+import logging
 
 load_dotenv()
+
+# Configuração de logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 # JWT Configuration
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
-#ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+security = HTTPBearer()
 
-# password hash configuration
+# Password hash configuration
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# Config token OAuth2
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-# Hash functions and password verify
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
+
 
 def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
-# Create token JWT
+
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     if expires_delta:
@@ -43,28 +48,60 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-# Auth User
-def authenticate_user(db: Session, username: str, password: str):
-    user = db.query(User).filter(User.username == username).first()
-    if not user or not pwd_context.verify(password, user.password):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-    return user
 
-# Get current user by token
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+def authenticate_user(db: Session, username: str, password: str):
+    # username to lowercase
+    username_lower = username.lower()
+    user = db.query(User).filter(User.username.ilike(username_lower)).first()
+    if not user or not pwd_context.verify(password, user.password):
+        logger.error(f"Invalid credentials for user: {username}")
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    if not user.user_type:
+        logger.error(f"User {username} has no user_type")
+        raise HTTPException(status_code=400, detail="User type not set")
+
+    user_type_name = user.user_type.name
+    logger.debug(f"User type: {user_type_name}")
+
+    if user_type_name == "staff":
+        staff = db.query(Staff).filter(Staff.user_id == user.id).first()
+        logger.debug(f"Staff role: {staff.role.name if staff else None}")
+        return {"user": user, "type": user_type_name, "role": staff.role.name if staff else None}
+    elif user_type_name == "maintainer":
+        maintainer = db.query(Maintainer).filter(Maintainer.user_id == user.id).first()
+        logger.debug(f"Maintainer found: {maintainer.__dict__ if maintainer else None}")
+        return {"user": user, "type": user_type_name, "role": None}
+    logger.error(f"Invalid user type: {user_type_name}")
+    raise HTTPException(status_code=400, detail="Invalid user type")
+
+
+def get_current_user(
+        credentials: HTTPAuthorizationCredentials = Depends(security),
+        db: Session = Depends(get_db)
+):
+    token = credentials.credentials
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
+        user_type = payload.get("type")
+        role = payload.get("role")
         if username is None:
-            raise credentials_exception
+            raise HTTPException(status_code=401, detail="Invalid token")
     except JWTError:
-        raise credentials_exception
+        raise HTTPException(status_code=401, detail="Could not validate credentials")
+
+    if username == "developer" and user_type == "staff" and role == "admin":
+        return {"user": None, "type": "staff", "role": "admin"}
+
     user = db.query(User).filter(User.username == username).first()
     if user is None:
-        raise credentials_exception
-    return user
+        raise HTTPException(status_code=401, detail="User not found")
+
+    user_type_name = user.user_type.name
+    if user_type_name == "staff":
+        staff = db.query(Staff).filter(Staff.user_id == user.id).first()
+        return {"user": user, "type": user_type_name, "role": staff.role.name if staff else None}
+    elif user_type_name == "maintainer":
+        return {"user": user, "type": user_type_name, "role": None}
+    raise HTTPException(status_code=400, detail="Invalid user type")

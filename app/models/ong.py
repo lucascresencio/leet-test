@@ -9,10 +9,17 @@ class ONG(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String)
-    cnpj = Column(String, unique=True)
+    document = Column(String, unique=True)
     address_id = Column(Integer, ForeignKey("address.id"), nullable=False)
     user_id = Column(Integer, ForeignKey("users.id"))
 
     # Relationship definition
     address = relationship("Address")
     user = relationship("User")
+    maintainers = relationship("Maintainer", secondary="ong_maintainer")
+
+# Associative table OngMaintainer
+class OngMaintainer(Base):
+    __tablename__ = "ong_maintainer"
+    ong_id = Column(Integer, ForeignKey("ongs.id"), primary_key=True)
+    maintainer_id = Column(Integer, ForeignKey("maintainers.id"), primary_key=True)
