@@ -1,8 +1,8 @@
 version: "3.9"
 
 services:
-  fastapi:
-    image: my_fastapi_app:latest
+  leet_app:
+    image: leet_app:latest
     build:
       context: .
     labels:
