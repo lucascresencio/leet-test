@@ -1,13 +1,18 @@
-version: '3.9'
+version: "3.9"
 
 services:
-  leet_app:
+  fastapi:
+    image: my_fastapi_app:latest
     build:
       context: .
-      dockerfile: Dockerfile
-    container_name: leet_app
-    env_file:
-      - .env
-    ports:
-      - 5050:5050
-    restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.fastapi.rule=Host(api.cresencio.space)"
+      - "traefik.http.routers.fastapi.entrypoints=web"
+      - "traefik.http.services.fastapi.loadbalancer.server.port=6000"
+    networks:
+      - web
+
+networks:
+  web:
+    external: false
