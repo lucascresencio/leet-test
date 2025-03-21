@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.schemas.maintainer import MaintainerCreate, MaintainerResponse, MaintainerBase
 from app.schemas.address import AddressCreate, AddressResponse
-from app.services.maintainer_service import create_maintainer
+from app.services.maintainer_service import create_maintainer, maintainers_list
 from app.services.auth_service import get_current_user
 from app.config.database import get_db
 from ..models.maintainer import Maintainer
@@ -37,7 +37,10 @@ def create_new_maintainer(
 
 # Rota para listar Mantenedores (protegida por token)
 @router.get("/list/", response_model=list[MaintainerResponse])
-def maintainers_list(
+def maintainers_list_all(
     db: Session = Depends(get_db),
 ):
-    return db.query(MaintainerBase).all()
+    # Buscar todos os maintainers no banco
+    maintainers = maintainers_list(db)
+
+    return maintainers

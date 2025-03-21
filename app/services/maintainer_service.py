@@ -3,12 +3,14 @@ from sqlalchemy.orm import Session
 from app.models.maintainer import Maintainer
 from app.models.ong import ONG, OngMaintainer
 from app.models.address import Address
-from app.schemas.maintainer import MaintainerCreate
+from app.schemas.maintainer import MaintainerCreate, MaintainerResponse
 from app.services.auth_service import get_password_hash, get_current_user
 from ..config.database import get_db
 from ..models.user import User, UserType
-from ..schemas.address import AddressCreate
+from ..schemas.address import AddressCreate, AddressResponse
 import logging
+
+from ..schemas.user import UserResponse
 
 
 def create_maintainer(db: Session, maintainer: MaintainerCreate, current_user: dict):
@@ -72,3 +74,23 @@ def create_maintainer(db: Session, maintainer: MaintainerCreate, current_user: d
         return db_maintainer
     except:
         raise HTTPException(status_code=400, detail="Creation of maintainer failed")
+
+def maintainers_list(
+    db: Session = Depends(get_db),
+):
+    maintainers = db.query(Maintainer).all()
+
+    # Serialização manual (opcional, mas seguindo o padrão do create_maintainer)
+    response = [
+        MaintainerResponse(
+            id=m.id,
+            user_id=m.user_id,
+            address_id=m.address_id,
+            name=m.name,
+            user=UserResponse.from_orm(m.user),
+            address=AddressResponse.from_orm(m.address),
+            is_business=m.is_business
+        ) for m in maintainers
+    ]
+
+    return response
