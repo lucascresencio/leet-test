@@ -80,7 +80,7 @@ def maintainers_list(
 ):
     maintainers = db.query(Maintainer).all()
 
-    # Serialização manual (opcional, mas seguindo o padrão do create_maintainer)
+    # Manual Serialize
     response = [
         MaintainerResponse(
             id=m.id,
