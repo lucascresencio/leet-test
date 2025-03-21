@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.schemas.user import UserCreate, UserResponse, LoginRequest, LoginResponse
 from app.services.auth_service import get_current_user, get_password_hash, authenticate_user, create_access_token
 from app.config.database import get_db
-from ..models.user import User
+from ..models.user import User, UserType
 
 load_dotenv()
 
@@ -22,12 +22,19 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
     if db_user:
         raise HTTPException(status_code=400, detail="Username already registered")
 
+    # Buscar o UserType correspondente ao user_type fornecido
+    user_type = db.query(UserType).filter(UserType.name == user.user_type).first()
+    if not user_type:
+        raise HTTPException(status_code=400, detail=f"Invalid user type: {user.user_type}")
+
     # Create user
     db_user = User(
         username=user.username,
         email=user.email,
+        document=user.document,
+        phone_number=user.phone_number,
         password=get_password_hash(user.password),
-        user_type=user.user_type
+        user_type_id=user.user_type
     )
     db.add(db_user)
     db.commit()

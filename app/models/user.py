@@ -20,9 +20,4 @@ class User(Base):
 class UserType(Base):
     __tablename__ = "user_types"
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, nullable=False)  # Ex.: "staff", "maintainer"
-
-class Role(Base):
-    __tablename__ = "roles"
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, nullable=False) # Ex.: "admin", "office", "volunteer"
+    name = Column(String, unique=True, nullable=False)  # Ex.: "staff", "maintainer", "ong"

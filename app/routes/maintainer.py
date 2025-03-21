@@ -30,7 +30,8 @@ def create_new_maintainer(
         address_id=db_maintainer.address_id,
         name=db_maintainer.name,
         user=user_response,
-        address=address_response
+        address=address_response,
+        is_business=db_maintainer.is_business
     )
     return response
 

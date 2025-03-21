@@ -5,6 +5,8 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+
+from app.models.ong import ONG
 from app.models.user import User
 from app.models.staff import Staff
 from app.models.maintainer import Maintainer
@@ -72,6 +74,10 @@ def authenticate_user(db: Session, username: str, password: str):
         maintainer = db.query(Maintainer).filter(Maintainer.user_id == user.id).first()
         logger.debug(f"Maintainer found: {maintainer.__dict__ if maintainer else None}")
         return {"user": user, "type": user_type_name, "role": None}
+    elif user_type_name == "ong":
+        ong = db.query(ONG).filter(ONG.user_id == user.id).first()
+        logger.debug(f"Maintainer found: {ong.__dict__ if ong else None}")
+        return {"user": user, "type": user_type_name, "role": None}
     logger.error(f"Invalid user type: {user_type_name}")
     raise HTTPException(status_code=400, detail="Invalid user type")
 
@@ -98,8 +104,14 @@ def get_current_user(
     if user is None:
         raise HTTPException(status_code=401, detail="User not found")
 
-    user_type_name = user.user_type.name
-    if user_type_name == "staff":
+    user_type_name = user.user_type.name if user.user_type else None
+    logger.debug(f"Current user type: {user_type_name}, user_id: {user.id}")
+
+    if user_type_name == "ong":
+        ong = db.query(ONG).filter(ONG.user_id == user.id).first()
+        logger.debug(f"ONG found: {ong.__dict__ if ong else None}")
+        return {"user_id": user.id, "type": user_type_name, "role": None}
+    elif user_type_name == "staff":
         staff = db.query(Staff).filter(Staff.user_id == user.id).first()
         return {"user": user, "type": user_type_name, "role": staff.role.name if staff else None}
     elif user_type_name == "maintainer":

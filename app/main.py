@@ -1,8 +1,9 @@
 from fastapi import FastAPI
 from app.config.database import engine, Base, get_db
-from app.routes import auth, maintainer, ong
+from app.routes import auth, maintainer, ong, staff
 from app.dependencies import auth_dev
-from app.models.user import UserType, Role, User
+from app.models.user import UserType, User
+from app.models.roles import Role
 from app.models.staff import Staff
 from app.services.auth_service import get_password_hash
 app = FastAPI(title="Leet Desenvolvimento de Programas de Computador LTDA")
@@ -11,7 +12,7 @@ app = FastAPI(title="Leet Desenvolvimento de Programas de Computador LTDA")
 # REMOVER A PRIMEIRA FUNÇAO E O STARTUP ANTES DE SUBIR PARA PROD
 #
 
-# Função para limpar e recriar as tabelas
+## Função para limpar e recriar as tabelas
 # def reset_and_create_tables():
 #     # Remove todas as tabelas existentes
 #     Base.metadata.drop_all(bind=engine)
@@ -19,7 +20,7 @@ app = FastAPI(title="Leet Desenvolvimento de Programas de Computador LTDA")
 #     Base.metadata.create_all(bind=engine)
 #
 
-# Popule as tabelas UserType e Role ao iniciar
+## Popule as tabelas UserType e Role ao iniciar
 # @app.on_event("startup")
 # def init_data():
 #     db = next(get_db())
@@ -29,7 +30,8 @@ app = FastAPI(title="Leet Desenvolvimento de Programas de Computador LTDA")
 #     if not db.query(UserType).first():
 #         db.add_all([
 #             UserType(name="staff"),
-#             UserType(name="maintainer")
+#             UserType(name="maintainer"),
+#             UserType(name="ong")
 #         ])
 #         db.commit()
 #
@@ -66,6 +68,7 @@ app.include_router(auth.router)
 app.include_router(maintainer.router)
 app.include_router(ong.router)
 app.include_router(auth_dev.router)
+app.include_router(staff.router)
 
 @app.get("/")
 def read_root():

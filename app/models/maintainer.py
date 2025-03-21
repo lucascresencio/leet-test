@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 
 from app.config.database import Base
@@ -11,6 +11,7 @@ class Maintainer(Base):
     name = Column(String)
     user_id = Column(Integer, ForeignKey("users.id"))
     address_id = Column(Integer, ForeignKey("address.id"), nullable=False)
+    is_business = Column(Boolean)
 
     # Relationship definition
     address = relationship("Address")

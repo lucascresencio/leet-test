@@ -9,7 +9,7 @@ class ONG(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String)
-    document = Column(String, unique=True)
+    document = Column(String, unique=True, nullable=False)
     address_id = Column(Integer, ForeignKey("address.id"), nullable=False)
     user_id = Column(Integer, ForeignKey("users.id"))
 
@@ -23,3 +23,7 @@ class OngMaintainer(Base):
     __tablename__ = "ong_maintainer"
     ong_id = Column(Integer, ForeignKey("ongs.id"), primary_key=True)
     maintainer_id = Column(Integer, ForeignKey("maintainers.id"), primary_key=True)
+
+    #Relationship
+    ong = relationship("ONG")
+    maintainer = relationship("Maintainer")
