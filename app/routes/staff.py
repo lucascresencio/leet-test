@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.models.staff import Staff
+from app.models.user import User
 from app.schemas.address import AddressResponse
 from app.schemas.staff import StaffCreate, StaffResponse
 from app.schemas.user import UserResponse
@@ -34,7 +36,6 @@ def create_staff_endpoint(
         user=user_response,
         address=address_response,
         ong_id=db_staff.ong_id,
-        email=db_staff.email,
         role=db_staff.role.name
     )
 

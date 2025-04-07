@@ -4,12 +4,9 @@ from app.schemas.address import AddressCreate, AddressResponse
 from app.schemas.user import UserCreate, UserResponse
 
 class StaffBase(BaseModel):
-    email: str
-    name: str
-    role: str  # "admin", "office", "volunteer"
+    role: str  # "admin", "office"
 
 class StaffCreate(StaffBase):
-    name: str
     ong_id: int
     address: AddressCreate
     user: UserCreate
@@ -18,7 +15,6 @@ class StaffCreate(StaffBase):
         schema_extra = {
             "example": {
                 "name": "João Silva",
-                "email": "joao@ong.com",
                 "ong_id": 1,
                 "address": {
                     "street": "Rua das Flores",
@@ -28,6 +24,7 @@ class StaffCreate(StaffBase):
                 },
                 "user": {
                     "username": "joao123",
+                    "email": "joao@ong.com",
                     "password": "senha123",
                     "user_type": "staff"
                 },
@@ -53,7 +50,6 @@ class StaffResponse(StaffBase):
             id=obj.id,
             user_id=obj.user_id,
             name=obj.name,
-            email=obj.email,
             role=obj.role.name if obj.role else None,
             ong_id=obj.ong_id,
             address_id=obj.address_id,

@@ -11,25 +11,25 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
+    username: str
+    name: str
     password: str
     user_type: str
+    photo: Optional[str] = None
 
-class UserResponse(UserBase):
+class UserResponse(BaseModel):
     id: int
+    username: str
+    name: Optional[str] = None
+    document: Optional[str] = None
+    email: Optional[str] = None
+    phone_number: Optional[str] = None
+    status: str
     user_type: str
+    photo: Optional[str] = None
 
     class Config:
-        orm_mode = True
         from_attributes = True
-
-    # Map user_type.name to user_type
-    @classmethod
-    def from_orm(cls, obj):
-        return cls(
-            id=obj.id,
-            username=obj.username,
-            user_type=obj.user_type.name if obj.user_type else None
-        )
 
 class LoginRequest(BaseModel):
     username: str
@@ -42,8 +42,10 @@ class LoginResponse(BaseModel):
     access_token: str
     token_type: str
     username: str
+    name: str
     document: Optional[str] = None
     email: Optional[EmailStr] = None
     phone_number: Optional[str] = None
     user_type: str
     role: Optional[str] = None
+    photo: Optional[str] = None

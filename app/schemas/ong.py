@@ -6,8 +6,7 @@ from app.schemas.address import AddressCreate, AddressResponse
 from app.schemas.user import UserCreate, UserResponse
 
 class ONGBase(BaseModel):
-    name: str
-    document: Optional[str] = None
+    description: Optional[str] = None
 
 
 class ONGCreate(ONGBase):
@@ -16,7 +15,9 @@ class ONGCreate(ONGBase):
 
 class ONGResponse(ONGBase):
     id: int
+    user_id: int
     document: Optional[str] = None
+    description: Optional[str] = None
     address: AddressResponse
     user: UserResponse
 

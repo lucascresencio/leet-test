@@ -24,9 +24,9 @@ def create_staff(db: Session, staff: StaffCreate, current_user: dict) -> Staff:
 
     try:
         # Validar a role
-        valid_roles = ["admin", "office", "volunteer"]
+        valid_roles = ["admin", "office"]
         if staff.role not in valid_roles:
-            raise HTTPException(status_code=400, detail="Invalid role. Must be 'admin', 'office', or 'volunteer'")
+            raise HTTPException(status_code=400, detail="Invalid role. Must be 'admin', 'office' ")
 
         # Verificar se a ONG existe
         ong = db.query(ONG).filter(ONG.id == staff.ong_id).first()
@@ -59,8 +59,6 @@ def create_staff(db: Session, staff: StaffCreate, current_user: dict) -> Staff:
 
         # Criar o staff
         db_staff = Staff(
-            email=staff.email,
-            name=staff.name,
             ong_id=staff.ong_id,
             address_id=db_address.id,
             user_id=db_user.id,
