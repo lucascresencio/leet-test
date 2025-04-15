@@ -7,6 +7,8 @@ class Address(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     street = Column(String)
+    street_number = Column(String)
+    complementary = Column(String)
     city = Column(String)
     state = Column(String)
     zip_code = Column(String)

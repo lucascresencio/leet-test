@@ -7,26 +7,31 @@ from app.config.database import get_db
 from app.services.auth_service import get_current_user
 from typing import Optional
 
-from app.services.user_service import search_users, get_user_by_id, delete_user, update_user
+from app.services.user_service import (get_users, get_user_by_id,
+                                       delete_user, update_user)
 
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-@router.get("/search/", response_model=list[UserResponse])
-def search_users_endpoint(
-        name: Optional[str] = None,
-        photo: Optional[str] = None,
+@router.get("/filter/", response_model=list[UserResponse])
+def get_users_endpoint(
+        db: Session = Depends(get_db),
+        current_user: dict = Depends(get_current_user),
         username: Optional[str] = None,
+        user_type: Optional[str] = None,
+        status: Optional[str] = None,
+        name: Optional[str] = None,
         document: Optional[str] = None,
         email: Optional[str] = None,
         phone_number: Optional[str] = None,
-        db: Session = Depends(get_db),
-        current_user: dict = Depends(get_current_user)
+        skip: int = 0,
+        limit: int = 100
 ):
     if current_user["type"] not in ["ong", "staff"]:
         raise HTTPException(status_code=403, detail="Permission denied")
 
-    return search_users(db, name, username, document, email, phone_number)
+    return get_users(db, current_user, username, user_type,
+                     status, name, document, email, phone_number, skip, limit)
 
 
 @router.get("/{id}", response_model=UserResponse)

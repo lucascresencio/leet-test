@@ -30,6 +30,7 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
     # Create user
     db_user = User(
         username=user.username,
+        name=user.name,
         email=user.email,
         document=user.document,
         phone_number=user.phone_number,
@@ -62,6 +63,7 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
         "access_token": access_token,
         "token_type": "bearer",
         "username": user.username,
+        "name": user.name,
         "email": user.email,
         "document": user.document,
         "phone_number": user.phone_number,

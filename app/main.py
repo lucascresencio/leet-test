@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from sqlalchemy import inspect
+from sqlalchemy import inspect, text
 
 from app.config.database import engine, Base, get_db
 from app.routes import (auth, maintainer, ong, staff, user, attendee,
@@ -8,6 +8,7 @@ from app.dependencies import auth_dev
 from app.models.user import UserType, User
 from app.models.roles import Role
 from app.models.staff import Staff
+from app.models.card import Card
 from app.services.auth_service import get_password_hash
 app = FastAPI(title="Leet Desenvolvimento de Programas de Computador LTDA")
 
@@ -31,11 +32,45 @@ async def startup_event():
 # REMOVER A PRIMEIRA FUNÇAO E O STARTUP ANTES DE SUBIR PARA PROD
 #
 
-# Função para limpar e recriar as tabelas
+# # Função para limpar e recriar as tabelas
 # def reset_and_create_tables():
-#     # Remove todas as tabelas existentes
-#     Base.metadata.drop_all(bind=engine)
-#     # Cria todas as tabelas definidas nos modelos
+#
+#     try:
+#         # Ordem de exclusão: tabelas dependentes primeiro
+#         with engine.connect() as connection:
+#             # Iniciar uma transação
+#             trans = connection.begin()
+#             try:
+#                 # Dropar tabelas na ordem correta com CASCADE
+#                 tables = [
+#                     "cards",  # Depende de maintainers
+#                     "maintainers",  # Depende de users e ongs
+#                     "addresses",
+#                     "ongs",  # Depende de users
+#                     "users",
+#                     "user_types"  # Base para users
+#                 ]
+#                 for table in tables:
+#                     try:
+#                         connection.execute(text(f"DROP TABLE IF EXISTS {table} CASCADE"))
+#
+#                     except Exception as e:
+#
+#                         raise
+#
+#                 # Confirmar a transação
+#                 trans.commit()
+#             except Exception as e:
+#                 # Reverter a transação em caso de erro
+#                 trans.rollback()
+#                 raise
+#
+#         # Recriar todas as tabelas
+#         Base.metadata.create_all(bind=engine)
+#
+#     except Exception as e:
+#
+#         raise
 #     Base.metadata.create_all(bind=engine)
 #
 #

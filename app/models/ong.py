@@ -23,7 +23,7 @@ class ONG(Base):
 # Associative table OngMaintainer
 class OngMaintainer(Base):
     __tablename__ = "ong_maintainer"
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     ong_id = Column(Integer, ForeignKey("ongs.id"), primary_key=True)
     maintainer_id = Column(Integer, ForeignKey("maintainers.id"), primary_key=True)
 

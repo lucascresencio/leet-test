@@ -16,7 +16,6 @@ class ONGCreate(ONGBase):
 class ONGResponse(ONGBase):
     id: int
     user_id: int
-    document: Optional[str] = None
     description: Optional[str] = None
     address: AddressResponse
     user: UserResponse
